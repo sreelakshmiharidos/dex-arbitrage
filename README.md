@@ -141,18 +141,3 @@ The focus is on demonstrating:
 * algorithm design
 * graph modeling
 * reasoning about AMM-based systems
-
-```
-
----
-
-# 💡 Why this README works
-
-It:
-- hits all task expectations
-- is **easy to skim in <30 seconds**
-- shows structure + clarity
-- aligns with your report (important)
-- looks like a strong internship submission
-
----
