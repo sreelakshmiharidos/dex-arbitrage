@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+"""
+graph.py
+
+Builds a directed graph from pool data.
+
+- Nodes = tokens
+- Edges = swap directions between tokens
+- Each pool contributes two edges (bidirectional swaps)
+"""
+
 from collections import defaultdict
 from decimal import Decimal
 from typing import Any
@@ -13,6 +23,7 @@ def build_graph(pools: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
   token0 -> token1
   token1 -> token0
   """
+  # Use defaultdict to automatically initialize adjacency lists
   graph: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
   for pool in pools:
@@ -22,6 +33,7 @@ def build_graph(pools: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     reserve1: Decimal = pool["reserve1"]
     pool_id = pool["pool_id"]
 
+    # Edge representing swap from token0 to token1
     graph[token0].append({
       "from": token0,
       "to": token1,
@@ -30,6 +42,7 @@ def build_graph(pools: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
       "reserve_out": reserve1,
     })
 
+    # Reverse edge representing swap from token1 to token0
     graph[token1].append({
       "from": token1,
       "to": token0,
@@ -38,4 +51,5 @@ def build_graph(pools: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
       "reserve_out": reserve0,
     })
 
+  # Convert defaultdict to regular dict before returning
   return dict(graph)
