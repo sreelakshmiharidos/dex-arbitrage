@@ -126,23 +126,42 @@ The system outputs the top 10 most profitable triangular arbitrage opportunities
 
 ---
 
-## AI Usage
+## 🤖 AI Usage
 
-AI tools (ChatGPT) were used extensively to:
+AI tools (primarily ChatGPT) were used as an active development partner throughout the project, enabling rapid iteration from problem definition to a working system.
 
-- Structure the project into modular components
-- Design graph construction logic
-- Implement swap simulation
-- Develop cycle detection and deduplication
-- Improve trade-size heuristics
-- Debug issues and refine outputs
+### How AI was used
 
-Limitations encountered:
-- Type hint warnings required manual interpretation
-- Initial outputs included unrealistic profits, requiring heuristic adjustments
-- Care was needed to ensure correctness beyond generated code
+Rather than using AI for one-shot code generation, I used it iteratively across multiple stages of the pipeline:
 
-All outputs were manually reviewed and refined to ensure correctness.
+* **Domain understanding and mental model building**
+  At the start, I used AI to understand the fundamentals of AMM-based DEXs, including concepts like pools, reserves, slippage, and arbitrage. This helped me build a mental model of the system, which I then used to reason about the problem and critically evaluate AI-generated suggestions throughout development.
+
+* **System decomposition**
+  I used AI to break down the problem into modular components (data loading, graph construction, simulation, cycle detection, ranking), which helped structure the overall pipeline early.
+
+* **Implementation acceleration**
+  AI was used to quickly scaffold core components such as graph construction and AMM-based swap simulation, significantly reducing time-to-first-working-version.
+
+* **Design exploration**
+  I leveraged AI to explore different approaches for cycle detection and trade-size selection, comparing alternatives before settling on a triangular-cycle + heuristic sizing approach.
+
+* **Debugging and refinement**
+  When outputs appeared unrealistic (e.g., unusually high profits), I used AI to help diagnose potential causes, but relied on my own reasoning to introduce constraints such as liquidity filtering and minimum trade sizes.
+
+### Key learnings
+
+* AI is highly effective for **rapid prototyping and reducing development time**, especially for structuring unfamiliar problems.
+* However, **AI-generated code cannot be trusted blindly** — correctness, especially in numerical systems, requires careful validation.
+* The most valuable use of AI was not code generation itself, but **interactive iteration**: refining prompts, testing outputs, and adjusting logic based on observed behavior.
+
+### Limitations encountered
+
+* Some AI-generated implementations initially produced **economically unrealistic outputs**, requiring manual inspection and heuristic adjustments.
+* Type-related issues (e.g., `Decimal` handling and type hints) required manual debugging beyond AI suggestions.
+* AI does not inherently reason about domain-specific constraints (e.g., liquidity, slippage realism), so these had to be explicitly incorporated.
+
+All outputs were manually reviewed and iteratively refined to ensure the final system was logically consistent and aligned with the intended modeling assumptions.
 
 ---
 
