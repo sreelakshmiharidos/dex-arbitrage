@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+"""
+arbitrage.py
+
+Core arbitrage logic:
+- finds triangular cycles
+- deduplicates equivalent cycles
+- tests multiple trade sizes
+- returns profitable opportunities
+"""
+
 from decimal import Decimal
 from typing import Any
 
@@ -11,8 +21,13 @@ def canonicalize_cycle_nodes(cycle: list[str]) -> tuple[str, ...]:
   Convert [A, B, C, A] into a rotation-invariant tuple like (A, B, C).
   Cycles equivalent up to rotation map to the same key.
   """
+  # Remove duplicate closing node (A at the end)
   core = cycle[:-1]
+
+  # Generate all cyclic rotations of the cycle
   rotations = [tuple(core[i:] + core[:i]) for i in range(len(core))]
+
+  # Pick the lexicographically smallest rotation as canonical form
   return min(rotations)
 
 
@@ -23,9 +38,13 @@ def get_candidate_trade_sizes(edges: list[dict[str, Any]]) -> list[Decimal]:
 
   This is a heuristic to avoid absurd trades on tiny liquidity.
   """
+  # Find bottleneck liquidity (smallest pool in the cycle)
   min_reserve_in = min(edge["reserve_in"] for edge in edges)
+
+  # Ignore extremely small trades
   min_trade_size = Decimal("1")
 
+  # Fractions of liquidity to try
   fractions = [
     Decimal("0.0001"),
     Decimal("0.0005"),
@@ -38,11 +57,14 @@ def get_candidate_trade_sizes(edges: list[dict[str, Any]]) -> list[Decimal]:
   seen = set()
 
   for fraction in fractions:
+    # Scale trade size based on liquidity
     amount = min_reserve_in * fraction
 
+    # Skip if too small
     if amount < min_trade_size:
       continue
 
+    # Normalize Decimal for deduplication
     key = str(amount.normalize())
     if key in seen:
       continue
@@ -64,12 +86,17 @@ def evaluate_cycle_with_best_trade_size(
   best_result = None
 
   for amount_in in get_candidate_trade_sizes(edges):
+    # Simulate swaps across the cycle
     final_amount = simulate_cycle_edges(edges, amount_in)
+
+    # Compute profit
     profit = final_amount - amount_in
 
+    # Ignore non-profitable trades
     if profit <= 0:
       continue
 
+    # Compute percentage return
     profit_pct = (profit / amount_in) * Decimal("100")
 
     result = {
@@ -81,6 +108,7 @@ def evaluate_cycle_with_best_trade_size(
       "edges": edges,
     }
 
+    # Keep best result by absolute profit
     if best_result is None or result["profit"] > best_result["profit"]: # type: ignore
       best_result = result
 
@@ -114,7 +142,10 @@ def find_triangular_arbitrage_deduped(
           if edge_ca["to"] != token_a:
             continue
 
+          # Construct full cycle
           cycle_nodes = [token_a, token_b, token_c, token_a]
+
+          # Canonical key for deduplication
           cycle_key = canonicalize_cycle_nodes(cycle_nodes)
 
           if cycle_key in seen_cycles:
@@ -122,9 +153,11 @@ def find_triangular_arbitrage_deduped(
 
           seen_cycles.add(cycle_key)
 
+          # Evaluate this cycle
           edges = [edge_ab, edge_bc, edge_ca]
           best_result = evaluate_cycle_with_best_trade_size(edges, cycle_nodes)
 
+          # Store only profitable cycles
           if best_result is not None:
             opportunities.append(best_result)
 
